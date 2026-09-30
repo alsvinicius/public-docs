@@ -222,8 +222,6 @@ comprovável, e então gasta sobre HTTP 402.
 ---
 
 ## Relacionados
-- BERT — Índice — outro estudo com estrutura de índice-guia (duas trilhas)
-- TDC São Paulo 2026 — conceitos — origem: talk "Agentic Commerce" (Edson
-  Yanaga, Google), TDC SP 2026
-- OmniRoute — AI Gateway; interação com padrões de tool-calling
 - [[estudos/index|← Estudos]]
+
+Origem da pesquisa: talk “Agentic Commerce”, de Edson Yanaga (Google), TDC São Paulo 2026.

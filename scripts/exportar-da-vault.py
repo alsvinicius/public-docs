@@ -78,7 +78,16 @@ DESCRICOES = {
     "seguranca": "Os papers peer-reviewed, o vetor do merchant falsificado, o gap de responsabilidade e um registro consolidado de riscos.",
 }
 
-# notas que NÃO vão para o site: o wikilink é desfeito, o texto permanece
+# crédito que existia só num bullet apontando para nota privada; removido junto
+# com o bullet, então é reposto aqui em forma pública
+ATTRIBUTIONS = {
+    "estudos/agentic-commerce/index": (
+        "Origem da pesquisa: talk \u201cAgentic Commerce\u201d, de Edson Yanaga (Google), "
+        "TDC S\u00e3o Paulo 2026."
+    ),
+}
+
+# notas que NÃO v\u00e3o para o site: o wikilink é desfeito, o texto permanece
 PRIVADAS = {
     "TDC São Paulo 2026 — conceitos",
     "OmniRoute",
@@ -89,6 +98,28 @@ PRIVADAS = {
 }
 
 WIKILINK = re.compile(r"\[\[([^\]|]+)(?:\|([^\]]*))?\]\]")
+# bullet que existe só para linkar uma nota privada: sai inteiro, senão o nome
+# da nota privada vaza como texto solto
+PRIVATE_LINK = re.compile(r"\[\[(?:[^\]|]*\|)?\s*(?:%s)\s*\]\]"
+                          % "|".join(re.escape(k) for k in PRIVADAS))
+
+
+def drop_private_bullets(text):
+    """Remove o bullet inteiro, incluindo linhas de continuação indentadas."""
+    lines = text.splitlines()
+    out, dropping = [], False
+    for line in lines:
+        stripped = line.strip()
+        if dropping:
+            # continuação do bullet: indentada e não-vazia
+            if stripped and (line[0].isspace()):
+                continue
+            dropping = False
+        if re.match(r"^\s*[-*+]\s", line) and PRIVATE_LINK.search(line.split("]]", 1)[0] + "]]"):
+            dropping = True
+            continue
+        out.append(line)
+    return "\n".join(out)
 AI_SESSION = re.compile(r"^\s*%%\s*ai-session:.*?%%\s*$", re.M)
 
 # nomes de nota não fazem sentido como texto de link fora da vault
@@ -204,6 +235,7 @@ def convert(name, slug, dest_dir, filename=None, src_dir=None):
 
     data, body = split_frontmatter(raw)
     body = AI_SESSION.sub("", body)
+    body = drop_private_bullets(body)
     body = rewrite_links(body)
     body = body.lstrip("\n")
 
@@ -223,6 +255,8 @@ def convert(name, slug, dest_dir, filename=None, src_dir=None):
     fm = build_frontmatter(slug, data)
     if slug in TITLES:
         body = sync_h1(body, TITLES[slug])
+    if slug in ATTRIBUTIONS:
+        body = body.rstrip() + "\n\n" + ATTRIBUTIONS[slug] + "\n"
 
     os.makedirs(dest_dir, exist_ok=True)
     out = os.path.join(dest_dir, (filename or slug) + ".md")
