@@ -9,7 +9,7 @@ tags:
   - "indice"
 ---
 
-# Agentic Commerce — Índice
+# Agentic Commerce
 
 [[estudos/index|← Estudos]]
 

@@ -113,6 +113,18 @@ def escape_currency(text):
     return "".join(parts)
 
 
+def sync_h1(body, title):
+    """Mantém o H1 do corpo igual ao title do frontmatter.
+
+    Sem isso o site mostra dois títulos: um vindo do frontmatter (usado pelo
+    cabeçalho da página) e outro do H1 no corpo.
+    """
+    def sub(m):
+        return f"{m.group(1)} {title}"
+
+    return re.sub(r"^(#+) .+$", sub, body, count=1, flags=re.M)
+
+
 def yaml_scalar(value):
     """Aspas sempre: títulos e descrições contêm ': ' e quebram o YAML."""
     return json.dumps(value, ensure_ascii=False)
@@ -209,6 +221,8 @@ def convert(name, slug, dest_dir, filename=None, src_dir=None):
     body = escape_currency(body)
 
     fm = build_frontmatter(slug, data)
+    if slug in TITLES:
+        body = sync_h1(body, TITLES[slug])
 
     os.makedirs(dest_dir, exist_ok=True)
     out = os.path.join(dest_dir, (filename or slug) + ".md")
